@@ -8,7 +8,7 @@
             open(unit=56,file='geom.xyz')
             open(unit=23,file='salida')
             open(unit=55,file='ini')
-           read(55,*) npas,npart,fact0,fact2,dxmax
+           read(*,*) npas,npart,fact0,fact2,dxmax
            allocate(x(npart),y(npart),fx(npart),fy(npart)
      > ,vx(npart),vy(npart))
            write(*,*) npart
@@ -19,7 +19,7 @@
 
               !!!!!!!!!!!! Precalculo de gaussiana de exitacion
             do i=1,npart
-            fy(i) = 1.D-5*exp(-0.001*
+            fy(i) = 2.D-5*exp(-0.0001*
      >      ((i-npart/4)**2))
             enddo
               !!!!!!!!!!!!!!!
@@ -72,7 +72,7 @@ c            write(44,*) j, i, vx(i)
 
              listo=0   !!!!Output en integer*4
              alisto=0  !!!! output en Real*4
-             if (kwrite.eq.1) then  !!! Cada cuanto escribe
+             if (kwrite.eq.2) then  !!! Cada cuanto escribe
               do ii=npart/4-5,npart/4+5 !!! Acumulo sobre varios puentos para filtrar ultrasonido
               alisto=alisto + x(ii)
                enddo
