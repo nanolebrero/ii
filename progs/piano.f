@@ -28,6 +28,11 @@
            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! calculo fuerzas
             do i=2,npart-1
               fx(i)=x(i-1)+x(i+1)-2*x(i) !+ 0.0005*dx2
+c              if(fx(i).ge.0) then
+c              fx(i)= min(fx(i),dxmax)
+c              else
+c              fx(i)=max(fx(i),-1*dxmax)
+c              endif
             enddo
            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
