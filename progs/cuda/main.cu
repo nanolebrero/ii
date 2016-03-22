@@ -20,7 +20,7 @@ void gaussiana(float* data,  int nodos, int cuerdas)
       cosa = -0.01*((j-2*nodos/10)*(j-2*nodos/10)) ;     
      data[j+i*nodos] = 2.E-3*exp(cosa);
     // data[j] =( cosa-cosa*cosa/1024.);//^2/1024;
-//    printf ("data %e  \n",   cosa) ;
+ //   printf ("data %e  \n",   data[j+i*nodos]) ;
    }
   }
 }
@@ -66,6 +66,7 @@ main(int argc, char** argv)
    unsigned int size_A = npart*ncuerdas;
    unsigned int mem_size_A = sizeof(float) * size_A;
    unsigned int buffer_salida = sizeof(float)*256*ncuerdas;
+   unsigned int bcur = sizeof(bool)*ncuerdas;   
 
    float* X = (float*) malloc(mem_size_A);
    float* V = (float*) malloc(mem_size_A);
@@ -74,7 +75,7 @@ main(int argc, char** argv)
    float* M = (float*) malloc(mem_size_A);
    float* Fext = (float*) malloc(mem_size_A);
    float* salida=(float*) malloc(buffer_salida);
-
+   bool* tococ=(bool*) malloc(bcur);
  
    // 8. allocate device memory
    float* d_X;
@@ -84,6 +85,7 @@ main(int argc, char** argv)
    float* d_M;
    float* d_Fext;
    float* d_salida;
+   bool* d_tococ;
    cudaMalloc((void**) &d_X, mem_size_A);
    cudaMalloc((void**) &d_V, mem_size_A);
    cudaMalloc((void**) &d_F, mem_size_A);
@@ -91,6 +93,7 @@ main(int argc, char** argv)
    cudaMalloc((void**) &d_M, mem_size_A);
    cudaMalloc((void**) &d_Fext, mem_size_A);
    cudaMalloc((void**) &d_salida, buffer_salida);
+   cudaMalloc((void**) &d_tococ, bcur);
 
 //    cublasHandle_t handle;
 //    cublasCreate(&handle);
@@ -101,9 +104,9 @@ main(int argc, char** argv)
     ceroInit(F, size_A);
 //    gaussiana(X, size_A);
     gaussiana(Fext, npart, ncuerdas);
-    randommasa(M, npart, ncuerdas, masatension, 0.1);
-    randommasa(Fr, npart, ncuerdas, friccion, 0.1);
-    friccionpuntas(Fr, npart, ncuerdas, friccion, 0.1);
+    randommasa(M, npart, ncuerdas, masatension, 0.0);
+    randommasa(Fr, npart, ncuerdas, friccion, 0.0);
+    friccionpuntas(Fr, npart, ncuerdas, friccion, .6);
    
 
    // 9. copy host memory to device
@@ -121,6 +124,13 @@ main(int argc, char** argv)
    cudaMemcpy(d_Fext, Fext, mem_size_A, 
    cudaMemcpyHostToDevice);
 
+ /*  for (uint nn=0; nn<npart; ++nn) {
+
+    printf ("masa %e  \n", M[nn]) ;
+    printf ("friccion %e  \n", Fr[nn]) ;
+
+    } 
+*/
 
    for (uint i = 0 ; i < npasos ; ++i) 
  { 
@@ -132,14 +142,29 @@ main(int argc, char** argv)
    dim3 grid(ncuerdas);
 //     printf("pancho %e %e \n", masatension, friccion) ; 
    // execute the kernel
-   if(10 < i && i < 12) {
-   avance<<< grid, threads >>>(d_X, d_V, 
-                                  d_F, d_Fext, d_salida, npart, d_M, d_Fr, 1);
- } else {
-   avance<<< grid, threads >>>(d_X, d_V, 
-                                 d_F, d_Fext, d_salida, npart, d_M, d_Fr, 0);
 
-}
+  for(int ii=0; ii < ncuerdas ; ++ii) {   
+
+     tococ[ii] = 0;
+
+      
+     if(i == ii*200 + 100 ) {
+         tococ[ii]=1;
+//      printf("toco la cuerda, %d %d", ii, i) ;
+      }
+    }
+   cudaMemcpy(d_tococ, tococ, bcur, 
+   cudaMemcpyHostToDevice);
+
+
+//   if(10 < i && i < 13) {
+   avance<<< grid, threads >>>(d_X, d_V, 
+                                  d_F, d_Fext, d_salida, npart, d_M, d_Fr, d_tococ);
+// } else {
+//   avance<<< grid, threads >>>(d_X, d_V, 
+//                                 d_F, d_Fext, d_salida, npart, d_M, d_Fr, 0);
+
+//}
    
 
 
@@ -155,11 +180,19 @@ main(int argc, char** argv)
     for (uint j = 0 ; j< 256; ++j) {
        int sal =0 ;
        int sal2 =0 ;
-         for (uint i=0; i< ncuerdas/2 ;++i) {
+         for (uint i=0; i< ncuerdas  ;++i) {
+//          if(salida[j+2*i*256] > 1000000) printf(" problemas con la cuerda , %d \n",i*2) ;
+//          if(salida[j+(2*i+1)*256] > 1000000) printf(" problemas con la cuerda , %d \n",i*2+1) ;
+        if(((i+1) % 2) == 0){
          sal += 100000*salida[j+i*256];
-         sal2 += 100000*salida[j+i*256*2];
+          }
+          else {
+         sal2 += 100000*salida[j+i*256];
+             }
                   }
-    printf ("  %d , %d  \n", sal , sal2) ; 
+//        sal=100000*salida[j+256*2];
+//        sal2=100000*salida[j+256];
+    printf (" %d , %d  \n", sal , sal2) ; 
             }
    }
  
