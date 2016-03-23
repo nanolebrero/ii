@@ -1,6 +1,6 @@
 #define BLOCK_SIZE 1024 
-#define ESCRIBE 1
-__global__  void avance( float* X, float* V, float* F, const float* Fext, float* salida,const int nodos, const float* mt, const float* fr , bool* tococ )
+#define ESCRIBE 5
+__global__  void avance( float* X, float* V, float* F, const float* Fext, float* salida,const int nodos, const float* mt, const float* fr , bool* tococ, const float random )
 {
       
     // Block index
@@ -12,7 +12,7 @@ __global__  void avance( float* X, float* V, float* F, const float* Fext, float*
       float vel=V[nodo] ;  
       float xr = X[nodo];
       float mtt=mt[nodo_en]/(num_cuer+1.);
-      float fext=Fext[nodo];
+      float fext=Fext[nodo]*0.1;//*random;
       bool toco=tococ[num_cuer];
       float frr=1.-fr[nodo_en];
 
@@ -23,8 +23,7 @@ __global__  void avance( float* X, float* V, float* F, const float* Fext, float*
         if(nodo_en > 0 && nodo_en < nodos) {
            float fuerza = (X[nodo-1] + X[nodo+1] - 2.*xr);  
            if(toco /*&& ii < 200*/) {
-
-           fuerza += fext ;
+           if(vel >= 0.02*random) fuerza += fext ;
 //           printf("toco, %d %e \n ", nodo_en ,fext); 
           }
              

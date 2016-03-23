@@ -44,6 +44,14 @@ void friccionpuntas(float* data, int nodos,int cuerdas, float param, float orden
     }
   }
 }
+void random(float* data, int nodos,int cuerdas, int i)
+{
+        //  float cosa = 0;
+     for(int j= 0; j < nodos; ++j){
+       float cosa=data[j+i*nodos];
+     data[j+i*nodos] = cosa*((float) rand()/RAND_MAX-0.5);
+  }
+}
  
 /////////////////////////////////////////////////////////
 // Program main
@@ -131,7 +139,7 @@ main(int argc, char** argv)
 
     } 
 */
-
+    int sig=1;
    for (uint i = 0 ; i < npasos ; ++i) 
  { 
    
@@ -140,39 +148,40 @@ main(int argc, char** argv)
    // setup execution parameters
    dim3 threads(npart);
    dim3 grid(ncuerdas);
-//     printf("pancho %e %e \n", masatension, friccion) ; 
    // execute the kernel
 
+  float random;
   for(int ii=0; ii < ncuerdas ; ++ii) {   
 
      tococ[ii] = 0;
 
       
-     if(i == ii*200 + 100 ) {
+     if(i > ii*100 + 10 && i < (ii + 1)*100 +20 ) {
          tococ[ii]=1;
 //      printf("toco la cuerda, %d %d", ii, i) ;
+//      random(Fext, npart, ncuerdas,ii);
       }
     }
+//   cudaMemcpy(d_Fext, Fext, mem_size_A, 
+//   cudaMemcpyHostToDevice);
+
    cudaMemcpy(d_tococ, tococ, bcur, 
    cudaMemcpyHostToDevice);
 
+/*    if(i % 100 == 0 ) {
 
-//   if(10 < i && i < 13) {
-   avance<<< grid, threads >>>(d_X, d_V, 
-                                  d_F, d_Fext, d_salida, npart, d_M, d_Fr, d_tococ);
-// } else {
-//   avance<<< grid, threads >>>(d_X, d_V, 
-//                                 d_F, d_Fext, d_salida, npart, d_M, d_Fr, 0);
-
-//}
+       sig=-1*sig;
+      }*/
+       random=sig*((float) rand()/RAND_MAX-0.5);
    
 
+   avance<<< grid, threads >>>(d_X, d_V, 
+                                  d_F, d_Fext, d_salida, npart, d_M, d_Fr, d_tococ, random);
+   
 
    // 11. copy result from device to host
    cudaMemcpy(salida, d_salida, buffer_salida, 
    cudaMemcpyDeviceToHost);
-//   cudaMemcpy(X, d_X, mem_size_A, 
-//   cudaMemcpyDeviceToHost);
 /*    for (uint j = 0 ; j< npart; ++j) {
     printf ("Xs %e  %d \n", X[j], j ) ; 
              }
@@ -181,8 +190,6 @@ main(int argc, char** argv)
        int sal =0 ;
        int sal2 =0 ;
          for (uint i=0; i< ncuerdas  ;++i) {
-//          if(salida[j+2*i*256] > 1000000) printf(" problemas con la cuerda , %d \n",i*2) ;
-//          if(salida[j+(2*i+1)*256] > 1000000) printf(" problemas con la cuerda , %d \n",i*2+1) ;
         if(((i+1) % 2) == 0){
          sal += 100000*salida[j+i*256];
           }
@@ -190,8 +197,6 @@ main(int argc, char** argv)
          sal2 += 100000*salida[j+i*256];
              }
                   }
-//        sal=100000*salida[j+256*2];
-//        sal2=100000*salida[j+256];
     printf (" %d , %d  \n", sal , sal2) ; 
             }
    }
