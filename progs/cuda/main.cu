@@ -1,5 +1,3 @@
-
-// Multiply two matrices A * B = C
 //#include <cublas_v2.h> 
 #include <stdlib.h>
 #include <stdio.h>
@@ -17,7 +15,7 @@ void gaussiana(float* data,  int nodos, int cuerdas)
        float cosa = 0;
      for(int i= 0; i< cuerdas; ++i){ 
      for(int j= 0; j < nodos; ++j){ 
-      cosa = -0.01*((j-2*nodos/10)*(j-2*nodos/10)) ;     
+      cosa = -0.02*((j-1*nodos/3)*(j-1*nodos/3)) ;     
      data[j+i*nodos] = 2.E-3*exp(cosa);
     // data[j] =( cosa-cosa*cosa/1024.);//^2/1024;
  //   printf ("data %e  \n",   data[j+i*nodos]) ;
@@ -38,7 +36,7 @@ void friccionpuntas(float* data, int nodos,int cuerdas, float param, float orden
 {
    for (int j=0; j < cuerdas; ++j){
    for (int i = 0; i < nodos; ++i) {
-   float factor = exp(-orden*(i*i)) + exp(-orden*(i-nodos)*(i-nodos));
+   float factor = 0.2*exp(-orden*(i*i)) + exp(-orden*(i-nodos)*(i-nodos));
    data[i+j*nodos] += factor;
 //    printf ("data %e  \n",   data[i]) ;
     }
@@ -112,9 +110,9 @@ main(int argc, char** argv)
     ceroInit(F, size_A);
 //    gaussiana(X, size_A);
     gaussiana(Fext, npart, ncuerdas);
-    randommasa(M, npart, ncuerdas, masatension, 0.0);
+    randommasa(M, npart, ncuerdas, masatension, 0.1);
     randommasa(Fr, npart, ncuerdas, friccion, 0.0);
-    friccionpuntas(Fr, npart, ncuerdas, friccion, .6);
+    friccionpuntas(Fr, npart, ncuerdas, friccion, .10);
    
 
    // 9. copy host memory to device
@@ -156,7 +154,8 @@ main(int argc, char** argv)
      tococ[ii] = 0;
 
       
-     if(i > ii*100 + 10 && i < (ii + 1)*100 +20 ) {
+ //    if(i > ii*450 + 10 && i < (ii + 1)*450 +20 ) {
+     if(i == ii*400 + 10 ) { //&& i < (ii + 1)*150 +20 ) {
          tococ[ii]=1;
 //      printf("toco la cuerda, %d %d", ii, i) ;
 //      random(Fext, npart, ncuerdas,ii);
